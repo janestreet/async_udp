@@ -242,6 +242,17 @@ module Loop_result = struct
   ;;
 end
 
+let custom_on_readable_loop ?(config = Config.create ()) fd ~syscall_name ~f =
+  let stop = Ivar.create () in
+  Config.stop config >>> Ivar.fill_if_empty stop;
+  ready_iter ~stop ~max_ready:config.max_ready fd `Read ~syscall_name ~f
+  >>| Loop_result.of_fd_interruptible_every_ready_to_result_exn
+        (Some (Config.init config))
+        syscall_name
+        fd
+        [%sexp_of: Fd.t]
+;;
+
 let recvfrom_loop_with_buffer_replacement ?(config = Config.create ()) fd f =
   let stop = Ivar.create () in
   Config.stop config >>> Ivar.fill_if_empty stop;

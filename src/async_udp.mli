@@ -192,6 +192,28 @@ val recvmmsg_loop
 
 val default_recvmmsg_loop_max_count : int
 
+module Ready_iter : sig
+  module Ok : sig
+    type t =
+      | Poll_again
+      | User_stopped
+  end
+
+  include Unix.Syscall_result.S with type ok_value := Ok.t
+
+  val poll_again : t
+  val user_stopped : t
+end
+
+(** If you need a custom read operation on an FD that we don't provide, use this to turn
+    it into a loop with the same features as our other APIs. *)
+val custom_on_readable_loop
+  :  ?config:Config.t
+  -> Fd.t
+  -> syscall_name:string
+  -> f:(Iobuf_intf.Unix.File_descr.t -> Ready_iter.t)
+  -> Loop_result.t Deferred.t
+
 (**/**)
 
 (*_ See the Jane Street Style Guide for an explanation of [Private] submodules:
