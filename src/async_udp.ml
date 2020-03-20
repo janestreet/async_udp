@@ -31,6 +31,7 @@ end
 let fail iobuf message a sexp_of_a =
   (* Render buffers immediately, before we have a chance to change them. *)
   failwiths
+    ~here:[%here]
     message
     (a, [%sexp_of: (_, _) Iobuf.Hexdump.t option] iobuf)
     (Tuple.T2.sexp_of_t sexp_of_a ident)
