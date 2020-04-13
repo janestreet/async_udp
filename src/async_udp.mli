@@ -120,6 +120,7 @@ val send
 val bind
   :  ?ifname:string
   -> ?source:Unix.Inet_addr.t
+  -> ?reuseaddr:bool (** defaults to [true]; you probably want [false] for [port 0] *)
   -> Socket.Address.Inet.t
   -> ([ `Bound ], Socket.Address.Inet.t) Socket.t
 

@@ -187,7 +187,7 @@ let send () =
              [%sexp_of: [ `Bad_fd | `Closed | `Unsupported ]])
 ;;
 
-let bind ?ifname ?source addr =
+let bind ?ifname ?source ?reuseaddr addr =
   let socket = Socket.create Socket.Type.udp in
   let is_multicast a =
     Unix.Cidr.does_match Unix.Cidr.multicast (Socket.Address.Inet.addr a)
@@ -210,7 +210,7 @@ let bind ?ifname ?source addr =
             (addr : Socket.Address.Inet.t)
             (ifname : string option)
             (exn : Exn.t)]);
-  Socket.bind_inet socket addr
+  Socket.bind_inet ?reuseaddr socket addr
 ;;
 
 let bind_any () =
