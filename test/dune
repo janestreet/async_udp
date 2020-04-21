@@ -1,3 +1,4 @@
 (library (name async_udp_test)
- (libraries async async_udp core expect_test_helpers)
+ (libraries async async_udp core expect_test_helpers_async
+  expect_test_helpers_core)
  (preprocess (pps ppx_jane)))

@@ -1,7 +1,8 @@
 open Core
 open Poly
 open Async
-open Expect_test_helpers
+open Expect_test_helpers_core
+open Expect_test_helpers_async
 open! Import
 open Async_udp
 
