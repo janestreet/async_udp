@@ -41,7 +41,7 @@ let fail iobuf message a sexp_of_a =
    results in partially applied functions! *)
 
 let sendto_sync () =
-  match Iobuf.sendto_nonblocking_no_sigpipe () with
+  match Iobuf_unix.sendto_nonblocking_no_sigpipe () with
   | Error _ as e -> e
   | Ok sendto ->
     Ok
@@ -51,7 +51,7 @@ let sendto_sync () =
 ;;
 
 let send_sync () =
-  match Iobuf.send_nonblocking_no_sigpipe () with
+  match Iobuf_unix.send_nonblocking_no_sigpipe () with
   | Error _ as e -> e
   | Ok send ->
     Ok
@@ -133,7 +133,7 @@ let ready_iter fd ~stop ~max_ready ~f read_or_write ~syscall_name =
 ;;
 
 let sendto () =
-  match Iobuf.sendto_nonblocking_no_sigpipe () with
+  match Iobuf_unix.sendto_nonblocking_no_sigpipe () with
   | Error _ as e -> e
   | Ok sendto ->
     Ok
@@ -161,7 +161,7 @@ let sendto () =
 ;;
 
 let send () =
-  match Iobuf.send_nonblocking_no_sigpipe () with
+  match Iobuf_unix.send_nonblocking_no_sigpipe () with
   | Error _ as e -> e
   | Ok send ->
     Ok
@@ -265,7 +265,7 @@ let recvfrom_loop_with_buffer_replacement ?(config = Config.create ()) fd f =
     `Read
     ~syscall_name:"recvfrom"
     ~f:(fun file_descr ->
-      match Iobuf.recvfrom_assume_fd_is_nonblocking !buf file_descr with
+      match Iobuf_unix.recvfrom_assume_fd_is_nonblocking !buf file_descr with
       | exception Unix.Unix_error (e, _, _) -> Ready_iter.create_error e
       | ADDR_UNIX dom ->
         fail
@@ -303,7 +303,7 @@ let read_loop_with_buffer_replacement ?(config = Config.create ()) fd f =
     `Read
     ~syscall_name:"read"
     ~f:(fun file_descr ->
-      let result = Iobuf.read_assume_fd_is_nonblocking !buf file_descr in
+      let result = Iobuf_unix.read_assume_fd_is_nonblocking !buf file_descr in
       if Unix.Syscall_result.Unit.is_ok result
       then (
         Iobuf.flip_lo !buf;
@@ -342,7 +342,7 @@ let recvmmsg_loop =
         | 0 -> Config.init config
         | _ -> Iobuf.create ~len:(Iobuf.length (Config.init config)))
   in
-  match Iobuf.recvmmsg_assume_fd_is_nonblocking with
+  match Iobuf_unix.recvmmsg_assume_fd_is_nonblocking with
   | Error _ as e -> e
   | Ok recvmmsg ->
     Ok
@@ -352,7 +352,7 @@ let recvmmsg_loop =
         fd
         f ->
         let bufs = create_buffers ~max_count config in
-        let context = Iobuf.Recvmmsg_context.create bufs in
+        let context = Iobuf_unix.Recvmmsg_context.create bufs in
         let stop = Ivar.create () in
         Config.stop config >>> Ivar.fill_if_empty stop;
         ready_iter
@@ -369,7 +369,7 @@ let recvmmsg_loop =
               if count > Array.length bufs
               then
                 failwithf
-                  "Unexpected result from Iobuf.recvmmsg_assume_fd_is_nonblocking: \
+                  "Unexpected result from Iobuf_unix.recvmmsg_assume_fd_is_nonblocking: \
                    count (%d) > Array.length bufs (%d)"
                   count
                   (Array.length bufs)
