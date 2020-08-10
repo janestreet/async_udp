@@ -98,19 +98,14 @@ val send_sync
     errors. *)
 val sendto
   :  unit
-  -> (Fd.t
-      -> ([> read ], Iobuf.seek) Iobuf.t
-      -> Socket.Address.Inet.t
-      -> unit Deferred.t)
+  -> (Fd.t -> ([> read ], Iobuf.seek) Iobuf.t -> Socket.Address.Inet.t -> unit Deferred.t)
        Or_error.t
 
 (** [send sock buf] retries if [sock] is not ready to write.
 
     @raise Unix_error in the case of Unix output errors and [Failure] on internal
     errors. *)
-val send
-  :  unit
-  -> (Fd.t -> ([> read ], Iobuf.seek) Iobuf.t -> unit Deferred.t) Or_error.t
+val send : unit -> (Fd.t -> ([> read ], Iobuf.seek) Iobuf.t -> unit Deferred.t) Or_error.t
 
 (** [bind ?ifname ?source address] creates a socket bound to address, and if [address] is
     multicast address,
