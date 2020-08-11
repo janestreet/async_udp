@@ -83,7 +83,8 @@ let%expect_test "stop smoke" =
   match sendto () with
   | Error nonfatal ->
     Debug.eprints "nonfatal" nonfatal [%sexp_of: Error.t];
-    [%expect.unreachable]
+    [%expect.unreachable];
+    return ()
   | Ok sendto ->
     let prefix = [ "a"; "b" ] in
     let suffix = [ "c"; "d" ] in
@@ -171,7 +172,8 @@ let%expect_test "recvmmsg_loop" =
   match recvmmsg_loop with
   | Error err ->
     eprintf "%s\n" (Error.to_string_hum err);
-    [%expect.unreachable]
+    [%expect.unreachable];
+    return ()
   | Ok recvmmsg_loop ->
     with_send_fsts
       ~expected_effects:
