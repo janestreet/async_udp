@@ -47,10 +47,15 @@ let%expect_test "bind_any" = sock (bind_any ())
 let with_socks ~expected_effects sexp_of_effect f =
   let sock1 = bind_any () in
   Monitor.protect
+    ~run:`Schedule
+    ~rest:`Log
     ~finally:(fun () -> Fd.close (Socket.fd sock1))
     (fun () ->
        let sock2 = bind_any () in
        Monitor.protect
+         ~run:
+           `Schedule
+         ~rest:`Log
          ~finally:(fun () -> Fd.close (Socket.fd sock2))
          (fun () ->
             let `Inet (_host1, port1), `Inet (_host2, port2) =
@@ -103,15 +108,19 @@ let%expect_test "stop smoke" =
                    [ sendto (Socket.fd sock1) (Iobuf.of_string str) addr2
                    ; Bvar.wait received
                    ])
-           ; (Monitor.try_with (fun () ->
-                read_loop (Socket.fd sock2) (fun buf ->
-                  let str = Iobuf.to_string buf in
-                  effect str;
-                  Bvar.broadcast received ();
-                  if String.equal str (List.last_exn prefix)
-                  then (
-                    stopped := true;
-                    failwith "Stop")))
+           ; (Monitor.try_with
+                ~run:
+                  `Schedule
+                ~rest:`Log
+                (fun () ->
+                   read_loop (Socket.fd sock2) (fun buf ->
+                     let str = Iobuf.to_string buf in
+                     effect str;
+                     Bvar.broadcast received ();
+                     if String.equal str (List.last_exn prefix)
+                     then (
+                       stopped := true;
+                       failwith "Stop")))
               >>| function
               | Error _ when !stopped -> ()
               (* We don't close the socket or stop the loop in this test (yet). *)
