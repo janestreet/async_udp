@@ -207,7 +207,7 @@ val custom_on_readable_loop
   :  ?config:Config.t
   -> Fd.t
   -> syscall_name:string
-  -> f:(Core.Unix.File_descr.t -> Ready_iter.t)
+  -> f:(Core_unix.File_descr.t -> Ready_iter.t)
   -> Loop_result.t Deferred.t
 
 (**/**)

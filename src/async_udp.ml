@@ -157,7 +157,7 @@ let sendto () =
              (Some buf)
              "Udp.sendto"
              (error, addr)
-             [%sexp_of: [ `Bad_fd | `Closed | `Unsupported ] * Core.Unix.sockaddr])
+             [%sexp_of: [ `Bad_fd | `Closed | `Unsupported ] * Core_unix.sockaddr])
 ;;
 
 let send () =
@@ -197,7 +197,7 @@ let bind ?ifname ?source ?reuseaddr addr =
     (* We do not treat [mcast_join] as a blocking operation because it only instructs
        the kernel to send an IGMP message, which the kernel handles asynchronously. *)
     try
-      Core.Unix.mcast_join
+      Core_unix.mcast_join
         ?source
         ?ifname
         (Fd.file_descr_exn (Socket.fd socket))
