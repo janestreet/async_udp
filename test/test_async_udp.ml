@@ -5,10 +5,10 @@ open Expect_test_helpers_core
 open! Import
 open Async_udp
 
-module Ready_iter = struct
+module _ = struct
   open Private.Ready_iter
 
-  module Ok = struct
+  module _ = struct
     open Ok
 
     let%test_unit _ =
