@@ -12,9 +12,9 @@ build: [
 depends: [
   "ocaml" {>= "4.08.0"}
   "async"
-  "core"
+  "core_unix"
   "ppx_jane"
-  "dune"     {>= "2.0.0"}
+  "dune"      {>= "2.0.0"}
 ]
 synopsis: "Monadic concurrency library"
 description: "
