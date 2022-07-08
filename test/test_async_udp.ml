@@ -53,8 +53,7 @@ let with_socks ~expected_effects sexp_of_effect f =
     (fun () ->
        let sock2 = bind_any () in
        Monitor.protect
-         ~run:
-           `Schedule
+         ~run:`Schedule
          ~rest:`Log
          ~finally:(fun () -> Fd.close (Socket.fd sock2))
          (fun () ->
@@ -109,8 +108,7 @@ let%expect_test "stop smoke" =
                    ; Bvar.wait received
                    ])
            ; (Monitor.try_with
-                ~run:
-                  `Schedule
+                ~run:`Schedule
                 ~rest:`Log
                 (fun () ->
                    read_loop (Socket.fd sock2) (fun buf ->
