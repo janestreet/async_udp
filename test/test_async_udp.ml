@@ -137,7 +137,7 @@ let with_fsts send ~expected_effects sexp_of_effect receiver =
       ~expected_effects
       sexp_of_effect
       (fun ~sock1 ~sock2 ~effect ~addr1:_ ~addr2 ->
-         Deferred.List.iter expected_effects ~f:(fun (s, _) ->
+         Deferred.List.iter ~how:`Sequential expected_effects ~f:(fun (s, _) ->
            send (Socket.fd sock1) (Iobuf.of_string s) addr2)
          >>= fun () -> receiver ~sock2 ~effect)
 ;;
