@@ -268,11 +268,7 @@ let recvfrom_loop_with_buffer_replacement ?(config = Config.create ()) fd f =
       match Iobuf_unix.recvfrom_assume_fd_is_nonblocking !buf file_descr with
       | exception Unix.Unix_error (e, _, _) -> Ready_iter.create_error e
       | ADDR_UNIX dom ->
-        fail
-          (Some !buf)
-          "Unix domain socket addresses not supported"
-          dom
-          [%sexp_of: string]
+        fail (Some !buf) "Unix domain socket addresses not supported" dom [%sexp_of: string]
       | ADDR_INET (host, port) ->
         Iobuf.flip_lo !buf;
         buf := f !buf (`Inet (host, port));
