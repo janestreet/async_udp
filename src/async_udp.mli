@@ -50,7 +50,7 @@ module Config : sig
     ; stop : unit Deferred.t
     ; max_ready : int
     }
-  [@@deriving fields]
+  [@@deriving fields ~getters]
 
   val create
     :  ?capacity:int (** default is [default_capacity] *)

@@ -15,7 +15,7 @@ module Config = struct
     ; stop : unit Deferred.t
     ; max_ready : int
     }
-  [@@deriving fields]
+  [@@deriving fields ~getters]
 
   let create
         ?(capacity = default_capacity)
