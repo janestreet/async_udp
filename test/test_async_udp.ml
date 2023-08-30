@@ -51,36 +51,36 @@ let with_socks ~expected_effects sexp_of_effect f =
     ~rest:`Log
     ~finally:(fun () -> Fd.close (Socket.fd sock1))
     (fun () ->
-       let sock2 = bind_any () in
-       Monitor.protect
-         ~run:`Schedule
-         ~rest:`Log
-         ~finally:(fun () -> Fd.close (Socket.fd sock2))
-         (fun () ->
-            let `Inet (_host1, port1), `Inet (_host2, port2) =
-              Unix.Socket.getsockname sock1, Unix.Socket.getsockname sock2
-            in
-            let rev_effects = ref [] in
-            with_timeout
-              (sec 0.1)
-              (f
-                 ~sock1
-                 ~sock2
-                 ~effect:(fun e -> rev_effects := e :: !rev_effects)
-                 ~addr1:(`Inet (Unix.Inet_addr.localhost, port1))
-                 ~addr2:(`Inet (Unix.Inet_addr.localhost, port2)))
-            >>| fun outcome ->
-            let effects = List.rev !rev_effects in
-            if not (Stdlib.( = ) expected_effects effects)
-            then
-              failwiths
-                ~here:[%here]
-                "unexpected effects"
-                [%sexp
-                  ~~(outcome : [ `Result of _ | `Timeout ])
+      let sock2 = bind_any () in
+      Monitor.protect
+        ~run:`Schedule
+        ~rest:`Log
+        ~finally:(fun () -> Fd.close (Socket.fd sock2))
+        (fun () ->
+          let `Inet (_host1, port1), `Inet (_host2, port2) =
+            Unix.Socket.getsockname sock1, Unix.Socket.getsockname sock2
+          in
+          let rev_effects = ref [] in
+          with_timeout
+            (sec 0.1)
+            (f
+               ~sock1
+               ~sock2
+               ~effect:(fun e -> rev_effects := e :: !rev_effects)
+               ~addr1:(`Inet (Unix.Inet_addr.localhost, port1))
+               ~addr2:(`Inet (Unix.Inet_addr.localhost, port2)))
+          >>| fun outcome ->
+          let effects = List.rev !rev_effects in
+          if not (Stdlib.( = ) expected_effects effects)
+          then
+            failwiths
+              ~here:[%here]
+              "unexpected effects"
+              [%sexp
+                ~~(outcome : [ `Result of _ | `Timeout ])
                 , ~~(effects : effect list)
                 , ~~(expected_effects : effect list)]
-                [%sexp_of: Sexp.t]))
+              [%sexp_of: Sexp.t]))
 ;;
 
 let%expect_test "stop smoke" =
@@ -96,35 +96,32 @@ let%expect_test "stop smoke" =
       ~expected_effects:prefix
       [%sexp_of: string]
       (fun ~sock1 ~sock2 ~effect ~addr1:_ ~addr2 ->
-         let stopped = ref false in
-         let received = Bvar.create () in
-         Deferred.all_unit
-           [ Deferred.List.iter ~how:`Sequential (prefix @ suffix) ~f:(fun str ->
-               if !stopped
-               then Deferred.unit
-               else
-                 Deferred.all_unit
-                   [ sendto (Socket.fd sock1) (Iobuf.of_string str) addr2
-                   ; Bvar.wait received
-                   ])
-           ; (Monitor.try_with
-                ~run:`Schedule
-                ~rest:`Log
-                (fun () ->
-                   read_loop (Socket.fd sock2) (fun buf ->
-                     let str = Iobuf.to_string buf in
-                     effect str;
-                     Bvar.broadcast received ();
-                     if String.equal str (List.last_exn prefix)
-                     then (
-                       stopped := true;
-                       failwith "Stop")))
-              >>| function
-              | Error _ when !stopped -> ()
-              (* We don't close the socket or stop the loop in this test (yet). *)
-              | Ok (Closed | Stopped) -> assert false
-              | Error e -> raise e)
-           ])
+      let stopped = ref false in
+      let received = Bvar.create () in
+      Deferred.all_unit
+        [ Deferred.List.iter ~how:`Sequential (prefix @ suffix) ~f:(fun str ->
+            if !stopped
+            then Deferred.unit
+            else
+              Deferred.all_unit
+                [ sendto (Socket.fd sock1) (Iobuf.of_string str) addr2
+                ; Bvar.wait received
+                ])
+        ; (Monitor.try_with ~run:`Schedule ~rest:`Log (fun () ->
+             read_loop (Socket.fd sock2) (fun buf ->
+               let str = Iobuf.to_string buf in
+               effect str;
+               Bvar.broadcast received ();
+               if String.equal str (List.last_exn prefix)
+               then (
+                 stopped := true;
+                 failwith "Stop")))
+           >>| function
+           | Error _ when !stopped -> ()
+           (* We don't close the socket or stop the loop in this test (yet). *)
+           | Ok (Closed | Stopped) -> assert false
+           | Error e -> raise e)
+        ])
 ;;
 
 let with_fsts send ~expected_effects sexp_of_effect receiver =
@@ -137,9 +134,9 @@ let with_fsts send ~expected_effects sexp_of_effect receiver =
       ~expected_effects
       sexp_of_effect
       (fun ~sock1 ~sock2 ~effect ~addr1:_ ~addr2 ->
-         Deferred.List.iter ~how:`Sequential expected_effects ~f:(fun (s, _) ->
-           send (Socket.fd sock1) (Iobuf.of_string s) addr2)
-         >>= fun () -> receiver ~sock2 ~effect)
+      Deferred.List.iter ~how:`Sequential expected_effects ~f:(fun (s, _) ->
+        send (Socket.fd sock1) (Iobuf.of_string s) addr2)
+      >>= fun () -> receiver ~sock2 ~effect)
 ;;
 
 let with_send_fsts ~expected_effects sexp_of_effect receiver =
@@ -161,7 +158,7 @@ let%expect_test "recvfrom_loop" =
     ~expected_effects:[ "a", 0; "bcd", 0; "efghijklmnop", 0 ]
     [%sexp_of: string * int]
     (fun ~sock2 ~effect ->
-       recvfrom_loop (Socket.fd sock2) (fun b _ -> effect (Iobuf.to_string b, 0)))
+      recvfrom_loop (Socket.fd sock2) (fun b _ -> effect (Iobuf.to_string b, 0)))
 ;;
 
 let%expect_test "read_loop" =
@@ -169,7 +166,7 @@ let%expect_test "read_loop" =
     ~expected_effects:[ "a", 0; "bcd", 0; "efghijklmnop", 0 ]
     [%sexp_of: string * int]
     (fun ~sock2 ~effect ->
-       read_loop (Socket.fd sock2) (fun b -> effect (Iobuf.to_string b, 0)))
+      read_loop (Socket.fd sock2) (fun b -> effect (Iobuf.to_string b, 0)))
 ;;
 
 (* Queue up some packets and check that they're received all at once.  There's a tiny
@@ -194,8 +191,8 @@ let%expect_test "recvmmsg_loop" =
         ]
       [%sexp_of: string * int]
       (fun ~sock2 ~effect ->
-         recvmmsg_loop (Socket.fd sock2) (fun bufs ~count ->
-           for i = 0 to count - 1 do
-             effect (Iobuf.to_string bufs.(i), i)
-           done))
+        recvmmsg_loop (Socket.fd sock2) (fun bufs ~count ->
+          for i = 0 to count - 1 do
+            effect (Iobuf.to_string bufs.(i), i)
+          done))
 ;;

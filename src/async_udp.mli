@@ -77,7 +77,7 @@ val sendto_sync
       -> ([> read ], Iobuf.seek) Iobuf.t
       -> Socket.Address.Inet.t
       -> Unix.Syscall_result.Unit.t)
-       Or_error.t
+     Or_error.t
 
 (** [send_sync sock buf] has identical semantics to [sendto_sync], but is intended for
     connected UDP sockets (and therefore does not require a "to" address).
@@ -99,7 +99,7 @@ val send_sync
 val sendto
   :  unit
   -> (Fd.t -> ([> read ], Iobuf.seek) Iobuf.t -> Socket.Address.Inet.t -> unit Deferred.t)
-       Or_error.t
+     Or_error.t
 
 (** [send sock buf] retries if [sock] is not ready to write.
 
@@ -178,13 +178,13 @@ val read_loop_with_buffer_replacement
 val recvmmsg_loop
   : (?config:Config.t (** default is [Config.create ()] *)
      -> ?max_count:int
-     (** default is [default_recvmmsg_loop_max_count],
+          (** default is [default_recvmmsg_loop_max_count],
          which is 32 now *)
      -> ?on_wouldblock:(unit -> unit) (** callback if [recvmmsg] would block *)
      -> Fd.t
      -> (write_buffer array -> count:int -> unit)
      -> Loop_result.t Deferred.t)
-      Or_error.t
+    Or_error.t
 
 val default_recvmmsg_loop_max_count : int
 
