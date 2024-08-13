@@ -1,6 +1,6 @@
 (library
  (name async_udp)
  (public_name async_udp)
- (libraries async core_unix.iobuf_unix)
+ (libraries async core core_unix core_kernel.iobuf core_unix.iobuf_unix)
  (preprocess
   (pps ppx_jane)))

@@ -147,9 +147,9 @@ let sendto () =
           `Write
           ~syscall_name:"sendto"
           ~f:(fun file_descr ->
-          match Unix.Syscall_result.Unit.to_result (sendto buf file_descr addr) with
-          | Ok () -> Ready_iter.user_stopped
-          | Error e -> Ready_iter.create_error e)
+            match Unix.Syscall_result.Unit.to_result (sendto buf file_descr addr) with
+            | Ok () -> Ready_iter.user_stopped
+            | Error e -> Ready_iter.create_error e)
         >>= function
         | `Interrupted -> Deferred.unit
         | (`Bad_fd | `Closed | `Unsupported) as error ->
@@ -174,9 +174,9 @@ let send () =
           `Write
           ~syscall_name:"send"
           ~f:(fun file_descr ->
-          match Unix.Syscall_result.Unit.to_result (send buf file_descr) with
-          | Ok () -> Ready_iter.user_stopped
-          | Error e -> Ready_iter.create_error e)
+            match Unix.Syscall_result.Unit.to_result (send buf file_descr) with
+            | Ok () -> Ready_iter.user_stopped
+            | Error e -> Ready_iter.create_error e)
         >>= function
         | `Interrupted -> Deferred.unit
         | (`Bad_fd | `Closed | `Unsupported) as error ->
@@ -265,15 +265,19 @@ let recvfrom_loop_with_buffer_replacement ?(config = Config.create ()) fd f =
     `Read
     ~syscall_name:"recvfrom"
     ~f:(fun file_descr ->
-    match Iobuf_unix.recvfrom_assume_fd_is_nonblocking !buf file_descr with
-    | exception Unix.Unix_error (e, _, _) -> Ready_iter.create_error e
-    | ADDR_UNIX dom ->
-      fail (Some !buf) "Unix domain socket addresses not supported" dom [%sexp_of: string]
-    | ADDR_INET (host, port) ->
-      Iobuf.flip_lo !buf;
-      buf := f !buf (`Inet (host, port));
-      Iobuf.reset !buf;
-      Ready_iter.poll_again)
+      match Iobuf_unix.recvfrom_assume_fd_is_nonblocking !buf file_descr with
+      | exception Unix.Unix_error (e, _, _) -> Ready_iter.create_error e
+      | ADDR_UNIX dom ->
+        fail
+          (Some !buf)
+          "Unix domain socket addresses not supported"
+          dom
+          [%sexp_of: string]
+      | ADDR_INET (host, port) ->
+        Iobuf.flip_lo !buf;
+        buf := f !buf (`Inet (host, port));
+        Iobuf.reset !buf;
+        Ready_iter.poll_again)
   >>| Loop_result.of_fd_interruptible_every_ready_to_result_exn
         (Some !buf)
         "recvfrom_loop_without_buffer_replacement"
@@ -299,14 +303,14 @@ let read_loop_with_buffer_replacement ?(config = Config.create ()) fd f =
     `Read
     ~syscall_name:"read"
     ~f:(fun file_descr ->
-    let result = Iobuf_unix.read_assume_fd_is_nonblocking !buf file_descr in
-    if Unix.Syscall_result.Unit.is_ok result
-    then (
-      Iobuf.flip_lo !buf;
-      buf := f !buf;
-      Iobuf.reset !buf;
-      Ready_iter.poll_again)
-    else Unix.Syscall_result.Unit.reinterpret_error_exn result)
+      let result = Iobuf_unix.read_assume_fd_is_nonblocking !buf file_descr in
+      if Unix.Syscall_result.Unit.is_ok result
+      then (
+        Iobuf.flip_lo !buf;
+        buf := f !buf;
+        Iobuf.reset !buf;
+        Ready_iter.poll_again)
+      else Unix.Syscall_result.Unit.reinterpret_error_exn result)
   >>| Loop_result.of_fd_interruptible_every_ready_to_result_exn
         (Some !buf)
         "read_loop_with_buffer_replacement"
@@ -343,10 +347,10 @@ let recvmmsg_loop =
   | Ok recvmmsg ->
     Ok
       (fun ?(config = Config.create ())
-           ?(max_count = default_recvmmsg_loop_max_count)
-           ?(on_wouldblock = fun () -> ())
-           fd
-           f ->
+        ?(max_count = default_recvmmsg_loop_max_count)
+        ?(on_wouldblock = fun () -> ())
+        fd
+        f ->
         let bufs = create_buffers ~max_count config in
         let context = Iobuf_unix.Recvmmsg_context.create bufs in
         let stop = Ivar.create () in
@@ -358,28 +362,28 @@ let recvmmsg_loop =
           `Read
           ~syscall_name:"recvmmsg"
           ~f:(fun file_descr ->
-          let result = recvmmsg file_descr context in
-          if Unix.Syscall_result.Int.is_ok result
-          then (
-            let count = Unix.Syscall_result.Int.ok_exn result in
-            if count > Array.length bufs
-            then
-              failwithf
-                "Unexpected result from Iobuf_unix.recvmmsg_assume_fd_is_nonblocking: \
-                 count (%d) > Array.length bufs (%d)"
-                count
-                (Array.length bufs)
-                ()
-            else (
-              (* [recvmmsg_assume_fd_is_nonblocking] implicitly calls [flip_lo]
+            let result = recvmmsg file_descr context in
+            if Unix.Syscall_result.Int.is_ok result
+            then (
+              let count = Unix.Syscall_result.Int.ok_exn result in
+              if count > Array.length bufs
+              then
+                failwithf
+                  "Unexpected result from Iobuf_unix.recvmmsg_assume_fd_is_nonblocking: \
+                   count (%d) > Array.length bufs (%d)"
+                  count
+                  (Array.length bufs)
+                  ()
+              else (
+                (* [recvmmsg_assume_fd_is_nonblocking] implicitly calls [flip_lo]
                    before and [reset] after the call, so we mustn't. *)
-              f bufs ~count;
-              Ready_iter.poll_again))
-          else (
-            (match Unix.Syscall_result.Int.error_exn result with
-             | EWOULDBLOCK | EAGAIN -> on_wouldblock ()
-             | _ -> ());
-            Unix.Syscall_result.Int.reinterpret_error_exn result))
+                f bufs ~count;
+                Ready_iter.poll_again))
+            else (
+              (match Unix.Syscall_result.Int.error_exn result with
+               | EWOULDBLOCK | EAGAIN -> on_wouldblock ()
+               | _ -> ());
+              Unix.Syscall_result.Int.reinterpret_error_exn result))
         >>| Loop_result.of_fd_interruptible_every_ready_to_result_exn
               None
               "recvmmsg_loop"

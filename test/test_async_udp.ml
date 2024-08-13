@@ -34,8 +34,8 @@ let sock sock =
   Unix.Socket.shutdown sock `Both;
   match addr with
   | `Inet (a, p) ->
-    if false then require [%here] (Unix.Inet_addr.( <> ) a Unix.Inet_addr.bind_any);
-    require [%here] (p <> 0);
+    if false then require (Unix.Inet_addr.( <> ) a Unix.Inet_addr.bind_any);
+    require (p <> 0);
     return ()
   | `Unix u -> failwith u
 ;;
@@ -96,32 +96,32 @@ let%expect_test "stop smoke" =
       ~expected_effects:prefix
       [%sexp_of: string]
       (fun ~sock1 ~sock2 ~effect ~addr1:_ ~addr2 ->
-      let stopped = ref false in
-      let received = Bvar.create () in
-      Deferred.all_unit
-        [ Deferred.List.iter ~how:`Sequential (prefix @ suffix) ~f:(fun str ->
-            if !stopped
-            then Deferred.unit
-            else
-              Deferred.all_unit
-                [ sendto (Socket.fd sock1) (Iobuf.of_string str) addr2
-                ; Bvar.wait received
-                ])
-        ; (Monitor.try_with ~run:`Schedule ~rest:`Log (fun () ->
-             read_loop (Socket.fd sock2) (fun buf ->
-               let str = Iobuf.to_string buf in
-               effect str;
-               Bvar.broadcast received ();
-               if String.equal str (List.last_exn prefix)
-               then (
-                 stopped := true;
-                 failwith "Stop")))
-           >>| function
-           | Error _ when !stopped -> ()
-           (* We don't close the socket or stop the loop in this test (yet). *)
-           | Ok (Closed | Stopped) -> assert false
-           | Error e -> raise e)
-        ])
+         let stopped = ref false in
+         let received = Bvar.create () in
+         Deferred.all_unit
+           [ Deferred.List.iter ~how:`Sequential (prefix @ suffix) ~f:(fun str ->
+               if !stopped
+               then Deferred.unit
+               else
+                 Deferred.all_unit
+                   [ sendto (Socket.fd sock1) (Iobuf.of_string str) addr2
+                   ; Bvar.wait received
+                   ])
+           ; (Monitor.try_with ~run:`Schedule ~rest:`Log (fun () ->
+                read_loop (Socket.fd sock2) (fun buf ->
+                  let str = Iobuf.to_string buf in
+                  effect str;
+                  Bvar.broadcast received ();
+                  if String.equal str (List.last_exn prefix)
+                  then (
+                    stopped := true;
+                    failwith "Stop")))
+              >>| function
+              | Error _ when !stopped -> ()
+              (* We don't close the socket or stop the loop in this test (yet). *)
+              | Ok (Closed | Stopped) -> assert false
+              | Error e -> raise e)
+           ])
 ;;
 
 let with_fsts send ~expected_effects sexp_of_effect receiver =
@@ -134,9 +134,9 @@ let with_fsts send ~expected_effects sexp_of_effect receiver =
       ~expected_effects
       sexp_of_effect
       (fun ~sock1 ~sock2 ~effect ~addr1:_ ~addr2 ->
-      Deferred.List.iter ~how:`Sequential expected_effects ~f:(fun (s, _) ->
-        send (Socket.fd sock1) (Iobuf.of_string s) addr2)
-      >>= fun () -> receiver ~sock2 ~effect)
+         Deferred.List.iter ~how:`Sequential expected_effects ~f:(fun (s, _) ->
+           send (Socket.fd sock1) (Iobuf.of_string s) addr2)
+         >>= fun () -> receiver ~sock2 ~effect)
 ;;
 
 let with_send_fsts ~expected_effects sexp_of_effect receiver =
