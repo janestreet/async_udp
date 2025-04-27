@@ -21,7 +21,6 @@ module _ = struct
           if Bool.( <> ) (compare u t = 0) (j = i)
           then
             failwiths
-              ~here:[%here]
               "overlapping representations"
               (t, i, u, j)
               [%sexp_of: t * int * t * int]))
@@ -74,7 +73,6 @@ let with_socks ~expected_effects sexp_of_effect f =
           if not (Stdlib.( = ) expected_effects effects)
           then
             failwiths
-              ~here:[%here]
               "unexpected effects"
               [%sexp
                 ~~(outcome : [ `Result of _ | `Timeout ])

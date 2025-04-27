@@ -31,7 +31,6 @@ end
 let fail iobuf message a sexp_of_a =
   (* Render buffers immediately, before we have a chance to change them. *)
   failwiths
-    ~here:[%here]
     message
     (a, [%sexp_of: (_, _) Iobuf.Hexdump.t option] iobuf)
     (Tuple.T2.sexp_of_t sexp_of_a Fn.id)
@@ -61,8 +60,8 @@ let send_sync () =
 
 (** [ready_iter fd ~stop ~max_ready ~f] iterates [f] over [fd], handling [EINTR] by
     retrying immediately (at most [max_ready] times in a row) and [EWOULDBLOCK]/[EAGAIN]
-    by retrying when ready.  Iteration is terminated when [fd] closes, [stop] fills, or
-    [f] returns [User_stopped].
+    by retrying when ready. Iteration is terminated when [fd] closes, [stop] fills, or [f]
+    returns [User_stopped].
 
     [ready_iter] may fill [stop] itself.
 

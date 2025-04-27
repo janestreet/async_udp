@@ -1,15 +1,15 @@
-(** A grab-bag of performance-oriented, UDP-oriented network tools.  These provide some
+(** A grab-bag of performance-oriented, UDP-oriented network tools. These provide some
     convenience, but they are more complex than basic applications require.
 
-    Defaults are chosen for typical UDP applications.  Buffering is via [Iobuf]
-    conventions, where a typical packet-handling loop iteration is
-    read -> [flip_lo] -> process -> [reset].
+    Defaults are chosen for typical UDP applications. Buffering is via [Iobuf]
+    conventions, where a typical packet-handling loop iteration is read -> [flip_lo] ->
+    process -> [reset].
 
     While these functions are oriented toward UDP, they work with any files that satisfy
     [Fd.supports_nonblock].
 
     For zero-copy [Bigstring.t] transfers, we must ensure no buffering between the receive
-    loop and caller.  So an interface like [Tcp.connect], with something like
+    loop and caller. So an interface like [Tcp.connect], with something like
     [(Bigstring.t * Socket.Address.Inet.t) Pipe.Reader.t], won't work. Instead, we use
     synchronous callbacks. *)
 
@@ -20,13 +20,13 @@ open! Import
 type write_buffer = (read_write, Iobuf.seek) Iobuf.t
 
 (** The default buffer capacity for UDP-oriented buffers is 1472, determined as the
-    typical Ethernet MTU (1500 octets) less the typical UDP header length (28).  Using
+    typical Ethernet MTU (1500 octets) less the typical UDP header length (28). Using
     buffers of this size, one avoids accidentally creating messages that will be dropped
     on send because they exceed the MTU, and can receive the largest corresponding UDP
     message.
 
     While this number is merely typical and not guaranteed to work in all cases, defining
-    it in one place makes it easy to share and change.  For example, another MTU in common
+    it in one place makes it easy to share and change. For example, another MTU in common
     use is 9000 for Jumbo frames, so the value of [default_capacity] might change to 8972
     in the future. *)
 val default_capacity : int
@@ -69,8 +69,9 @@ end
     See also {!Iobuf.sendto_nonblocking_no_sigpipe} and
     {!Bigstring.sendto_nonblocking_no_sigpipe}.
 
-    @raise Failure on internal errors but return [Unix.error] via
-    [Unix.Syscall_result.Unit.t] rather than raising [Unix_error]. *)
+    @raise Failure
+      on internal errors but return [Unix.error] via [Unix.Syscall_result.Unit.t] rather
+      than raising [Unix_error]. *)
 val sendto_sync
   :  unit
   -> (Fd.t
@@ -82,20 +83,19 @@ val sendto_sync
 (** [send_sync sock buf] has identical semantics to [sendto_sync], but is intended for
     connected UDP sockets (and therefore does not require a "to" address).
 
-    See also
-    {!Iobuf.send_nonblocking_no_sigpipe} and
+    See also {!Iobuf.send_nonblocking_no_sigpipe} and
     {!Bigstring.send_nonblocking_no_sigpipe}.
 
-    @raise Failure on internal errors but return [Unix.error] via
-    [Unix.Syscall_result.Unit.t] rather than raising [Unix_error]. *)
+    @raise Failure
+      on internal errors but return [Unix.error] via [Unix.Syscall_result.Unit.t] rather
+      than raising [Unix_error]. *)
 val send_sync
   :  unit
   -> (Fd.t -> ([> read ], Iobuf.seek) Iobuf.t -> Unix.Syscall_result.Unit.t) Or_error.t
 
 (** [sendto sock buf addr] retries if [sock] is not ready to write.
 
-    @raise Unix_error in the case of Unix output errors and [Failure] on internal
-    errors. *)
+    @raise Unix_error in the case of Unix output errors and [Failure] on internal errors. *)
 val sendto
   :  unit
   -> (Fd.t -> ([> read ], Iobuf.seek) Iobuf.t -> Socket.Address.Inet.t -> unit Deferred.t)
@@ -103,8 +103,7 @@ val sendto
 
 (** [send sock buf] retries if [sock] is not ready to write.
 
-    @raise Unix_error in the case of Unix output errors and [Failure] on internal
-    errors. *)
+    @raise Unix_error in the case of Unix output errors and [Failure] on internal errors. *)
 val send : unit -> (Fd.t -> ([> read ], Iobuf.seek) Iobuf.t -> unit Deferred.t) Or_error.t
 
 (** [bind ?ifname ?source address] creates a socket bound to address, and if [address] is
@@ -146,10 +145,10 @@ val recvfrom_loop
   -> Loop_result.t Deferred.t
 
 (** [recvfrom_loop_with_buffer_replacement callback] calls [callback] synchronously on
-    each message received.  [callback] returns the packet buffer for subsequent
-    iterations, so it can replace the initial packet buffer when necessary.  This enables
-    immediate buffer reuse in the common case and fallback to allocation if we want to
-    save the packet buffer for asynchronous processing. *)
+    each message received. [callback] returns the packet buffer for subsequent iterations,
+    so it can replace the initial packet buffer when necessary. This enables immediate
+    buffer reuse in the common case and fallback to allocation if we want to save the
+    packet buffer for asynchronous processing. *)
 val recvfrom_loop_with_buffer_replacement
   :  ?config:Config.t
   -> Fd.t
@@ -169,7 +168,7 @@ val read_loop_with_buffer_replacement
   -> Loop_result.t Deferred.t
 
 (** [recvmmsg_loop ~socket callback] iteratively receives up to [max_count] packets at a
-    time on [socket] and passes them to [callback].  Each packet is up to [Iobuf.capacity]
+    time on [socket] and passes them to [callback]. Each packet is up to [Iobuf.capacity]
     bytes.
 
     [callback bufs ~count] processes [count] packets synchronously.
@@ -178,8 +177,7 @@ val read_loop_with_buffer_replacement
 val recvmmsg_loop
   : (?config:Config.t (** default is [Config.create ()] *)
      -> ?max_count:int
-          (** default is [default_recvmmsg_loop_max_count],
-         which is 32 now *)
+          (** default is [default_recvmmsg_loop_max_count], which is 32 now *)
      -> ?on_wouldblock:(unit -> unit) (** callback if [recvmmsg] would block *)
      -> Fd.t
      -> (write_buffer array -> count:int -> unit)
