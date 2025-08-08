@@ -76,7 +76,7 @@ module Ready_iter = struct
     type t =
       | Poll_again
       | User_stopped
-    [@@deriving sexp_of, enumerate, compare]
+    [@@deriving sexp_of, enumerate, compare ~localize]
 
     let of_int_exn = function
       | 0 -> Poll_again
@@ -231,7 +231,7 @@ module Loop_result = struct
   type t =
     | Closed
     | Stopped
-  [@@deriving sexp_of, compare]
+  [@@deriving sexp_of, compare ~localize]
 
   let of_fd_interruptible_every_ready_to_result_exn buf function_name x sexp_of_x result =
     match result with
