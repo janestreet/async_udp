@@ -17,7 +17,7 @@ open! Core
 open! Async
 open! Import
 
-type write_buffer = (read_write, Iobuf.seek) Iobuf.t
+type write_buffer = (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
 
 (** The default buffer capacity for UDP-oriented buffers is 1472, determined as the
     typical Ethernet MTU (1500 octets) less the typical UDP header length (28). Using
@@ -75,7 +75,7 @@ end
 val sendto_sync
   :  unit
   -> (Fd.t
-      -> ([> read ], Iobuf.seek) Iobuf.t
+      -> ([> read ], Iobuf.seek, Iobuf.global) Iobuf.t
       -> Socket.Address.Inet.t
       -> Unix.Syscall_result.Unit.t)
        Or_error.t
@@ -91,20 +91,26 @@ val sendto_sync
       than raising [Unix_error]. *)
 val send_sync
   :  unit
-  -> (Fd.t -> ([> read ], Iobuf.seek) Iobuf.t -> Unix.Syscall_result.Unit.t) Or_error.t
+  -> (Fd.t -> ([> read ], Iobuf.seek, Iobuf.global) Iobuf.t -> Unix.Syscall_result.Unit.t)
+       Or_error.t
 
 (** [sendto sock buf addr] retries if [sock] is not ready to write.
 
     @raise Unix_error in the case of Unix output errors and [Failure] on internal errors. *)
 val sendto
   :  unit
-  -> (Fd.t -> ([> read ], Iobuf.seek) Iobuf.t -> Socket.Address.Inet.t -> unit Deferred.t)
+  -> (Fd.t
+      -> ([> read ], Iobuf.seek, Iobuf.global) Iobuf.t
+      -> Socket.Address.Inet.t
+      -> unit Deferred.t)
        Or_error.t
 
 (** [send sock buf] retries if [sock] is not ready to write.
 
     @raise Unix_error in the case of Unix output errors and [Failure] on internal errors. *)
-val send : unit -> (Fd.t -> ([> read ], Iobuf.seek) Iobuf.t -> unit Deferred.t) Or_error.t
+val send
+  :  unit
+  -> (Fd.t -> ([> read ], Iobuf.seek, Iobuf.global) Iobuf.t -> unit Deferred.t) Or_error.t
 
 (** [bind ?ifname ?source address] creates a socket bound to address, and if [address] is
     multicast address,
@@ -129,7 +135,7 @@ module Loop_result : sig
   (** As the name implies, this is useful for other modules that want to compatibly
       convert the result of {!Fd.interruptible_ready_to} to a loop result or exception. *)
   val of_fd_interruptible_every_ready_to_result_exn
-    :  (_, _) Iobuf.t option
+    :  (_, _, Iobuf.global) Iobuf.t option
     -> string
     -> 'a
     -> ('a -> Sexp.t)

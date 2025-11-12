@@ -3,7 +3,7 @@ open! Async
 open! Import
 open! Int.Replace_polymorphic_compare
 
-type write_buffer = (read_write, Iobuf.seek) Iobuf.t
+type write_buffer = (read_write, Iobuf.seek, Iobuf.global) Iobuf.t
 
 let default_capacity = 1472
 let default_retry = 12
@@ -32,7 +32,7 @@ let fail iobuf message a sexp_of_a =
   (* Render buffers immediately, before we have a chance to change them. *)
   failwiths
     message
-    (a, [%sexp_of: (_, _) Iobuf.Hexdump.t option] iobuf)
+    (a, [%sexp_of: (_, _, Iobuf.global) Iobuf.Hexdump.t option] iobuf)
     (Tuple.T2.sexp_of_t sexp_of_a Fn.id)
 ;;
 
