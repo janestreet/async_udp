@@ -218,7 +218,7 @@ val custom_on_readable_loop
 
 (*_ See the Jane Street Style Guide for an explanation of [Private] submodules:
 
-  https://opensource.janestreet.com/standards/#private-submodules *)
+    https://opensource.janestreet.com/standards/#private-submodules *)
 module Private : sig
   module Ready_iter : sig
     module Ok : sig

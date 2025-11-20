@@ -36,7 +36,7 @@ let fail iobuf message a sexp_of_a =
     (Tuple.T2.sexp_of_t sexp_of_a Fn.id)
 ;;
 
-(* Don't use [Or_error.map] to extract any of the [send] functions.  The natural usage
+(* Don't use [Or_error.map] to extract any of the [send] functions. The natural usage
    results in partially applied functions! *)
 
 let sendto_sync () =
@@ -193,8 +193,8 @@ let bind ?ifname ?source ?reuseaddr addr =
   in
   if is_multicast addr
   then (
-    (* We do not treat [mcast_join] as a blocking operation because it only instructs
-       the kernel to send an IGMP message, which the kernel handles asynchronously. *)
+    (* We do not treat [mcast_join] as a blocking operation because it only instructs the
+       kernel to send an IGMP message, which the kernel handles asynchronously. *)
     try
       Core_unix.mcast_join
         ?source
@@ -216,8 +216,8 @@ let bind_any () =
   let bind_addr = Socket.Address.Inet.create_bind_any ~port:0 in
   let socket = Socket.create Socket.Type.udp in
   (* When bind() is called with a port number of zero, a non-conflicting local port
-     address is chosen (i.e., an ephemeral port).  In almost all cases where we use
-     this, we want a unique port, and hence prevent reuseaddr. *)
+     address is chosen (i.e., an ephemeral port). In almost all cases where we use this,
+     we want a unique port, and hence prevent reuseaddr. *)
   try Socket.bind_inet socket ~reuseaddr:false bind_addr with
   | bind_exn ->
     let socket_fd = Socket.fd socket in
@@ -324,7 +324,7 @@ let read_loop ?config fd f =
 ;;
 
 (* Too small a [max_count] here negates the value of [recvmmsg], while too large risks
-   starvation of other ready file descriptors.  32 was chosen empirically to stay below
+   starvation of other ready file descriptors. 32 was chosen empirically to stay below
    ~64kb of data, assuming a standard Ethernet MTU. *)
 let default_recvmmsg_loop_max_count = 32
 
@@ -374,8 +374,8 @@ let recvmmsg_loop =
                   (Array.length bufs)
                   ()
               else (
-                (* [recvmmsg_assume_fd_is_nonblocking] implicitly calls [flip_lo]
-                   before and [reset] after the call, so we mustn't. *)
+                (* [recvmmsg_assume_fd_is_nonblocking] implicitly calls [flip_lo] before
+                   and [reset] after the call, so we mustn't. *)
                 f bufs ~count;
                 Ready_iter.poll_again))
             else (
