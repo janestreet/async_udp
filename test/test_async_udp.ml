@@ -167,7 +167,7 @@ let%expect_test "read_loop" =
       read_loop (Socket.fd sock2) (fun b -> effect (Iobuf.to_string b, 0)))
 ;;
 
-(* Queue up some packets and check that they're received all at once.  There's a tiny
+(* Queue up some packets and check that they're received all at once. There's a tiny
    element of faith in assuming they'll be queued rather than dropped and that they're
    delivered in order. *)
 let%expect_test "recvmmsg_loop" =
