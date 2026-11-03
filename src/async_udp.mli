@@ -130,7 +130,7 @@ module Loop_result : sig
   type t =
     | Closed
     | Stopped
-  [@@deriving sexp_of, compare ~localize]
+  [@@deriving sexp_of, compare]
 
   (** As the name implies, this is useful for other modules that want to compatibly
       convert the result of {!Fd.interruptible_ready_to} to a loop result or exception. *)
