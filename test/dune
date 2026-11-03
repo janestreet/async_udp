@@ -3,3 +3,8 @@
  (libraries async async_udp core expect_test_helpers_core core_kernel.iobuf)
  (preprocess
   (pps ppx_jane)))
+
+(env
+ (_
+  (env-vars
+   (OCAMLPARAM w=-46,keywords=5.2,_))))
